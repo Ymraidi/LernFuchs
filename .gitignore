@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+daten/
+android/.buildozer/
+android/bin/
+android/lernfuchs/
+android/tools/_cache/
+*.tmp

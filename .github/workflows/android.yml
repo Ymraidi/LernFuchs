@@ -1,0 +1,47 @@
+# Baut automatisch die Android-App (APK), sobald Änderungen hochgeladen werden.
+# Die fertige APK liegt danach unter „Actions“ → letzter Lauf → „Artifacts“ → LernFuchs-APK.
+name: Android-App bauen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Gemeinsamen Kern in die Android-App kopieren
+        run: python android/tools/sync_core.py
+
+      - name: Werkzeuge installieren
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          pip install --upgrade pip
+          pip install buildozer "cython<3"
+
+      - name: Zwischenspeicher (beschleunigt spätere Builds)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            android/.buildozer
+          key: buildozer-${{ runner.os }}-${{ hashFiles('android/buildozer.spec') }}
+
+      - name: APK bauen
+        working-directory: android
+        run: yes | buildozer -v android debug
+
+      - name: APK bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: LernFuchs-APK
+          path: android/bin/*.apk
