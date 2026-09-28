@@ -16,6 +16,13 @@ python main.py
 | 🌍 HSU | Körper, Tiere, Pflanzen, Kalender, Wetter & Wasser, Verkehr, Heimat & Bayern, Umwelt & Müll, Technik, Berufe, Entdecken (Klexikon, online) |
 | 🧠 Konzentration | Zahlen-Jagd, Zahlen merken, Memory, Buchstaben-Detektiv, Farben-Falle, Zähl genau, Was ist anders?, Bilder merken, Rechenkette hören |
 
+## Android-Tablet-Version (Ordner `android/`)
+- Gleiche Aufgaben, Stufen und Fehlerbox wie am PC. Der Kern wird mit `android/tools/sync_core.py` übernommen.
+- Design „Kreisel-Arena“: eigener Battle-Kreisel (auf der Startseite antippen zum Wechseln), Kampf gegen einen Rivalen mit Ausdauer-Balken, „3-2-1 – Let it rip!“ und Burst-Sieg. Im Elternbereich lässt sich das Design auf „Modern“ umstellen.
+- Sprache über die Android-Sprachausgabe (Google, Deutsch, offline). 3D-Bilder, Animationen und Fotos sind in der App enthalten.
+- **APK bauen:** Das Projekt auf GitHub hochladen (`git push`). Unter „Actions“ baut GitHub die App automatisch (erster Lauf ca. 20–40 Minuten). Danach unter „Artifacts“ **LernFuchs-APK** herunterladen, aufs Tablet kopieren und installieren („Unbekannte Apps zulassen“).
+- Am PC testen: `cd android`, `python tools/sync_core.py`, `python main.py`.
+
 ## Neu in Version 3
 - **Schneller:** Die App läuft von der lokalen Festplatte (der Starter kopiert sie automatisch von H:), Daten liegen unter `%LOCALAPPDATA%\LernFuchs`. Das Profil wird beim Beenden in `daten\sicherung` gesichert. Die nächste Aufgabe und ihre Sprachausgabe werden im Voraus vorbereitet.
 - **Natürlichere Stimme:** Florian (Microsoft Neural). Aufgaben werden natürlich formuliert („Wie viel ist 7 mal 8?“), Emojis werden als Wort vorgelesen. Zum Rundenende gibt es eine persönliche, wechselnde Rückmeldung.
