@@ -18,9 +18,10 @@ from lernfuchs import adaptive
 from lernfuchs import theme as T
 from lernfuchs.content import topics as TP
 from lernfuchs.storage import STARS_PER_STICKER, STICKERS, today
-from .ui import AnimImg, Box, C, EmojiImg, NumPad, Progress, RButton, Txt, toast
+from .ui import MY_BEYS, AnimImg, BeyTop, Box, C, EmojiImg, NumPad, Progress, RButton, Txt, toast
 
-TIPS = ["Profis lesen die Aufgabe zweimal – dann erst antworten.", "Schnell UND richtig bringt Blitz-Bonus.",
+TIPS = ["Jede richtige Antwort ist ein Treffer gegen deinen Rivalen!", "Konzentration ist dein stärkster Angriff.",
+        "Profis lesen die Aufgabe zweimal – dann erst antworten.", "Schnell UND richtig bringt Blitz-Bonus.",
         "Ab Stufe 6 wird es PROFI – Stoff der nächsten Klasse.", "Am Ende jeder Runde wartet eine Boss-Aufgabe.",
         "Knobel-Sonderaufgaben bringen +3 XP extra.", "Kurze Pausen machen dein Gehirn schneller."]
 
@@ -65,11 +66,16 @@ class HomeScreen(BaseScreen):
     def __init__(self, app, **kw):
         super().__init__(app, **kw)
         p = app.profile
-        top = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(84), spacing=dp(14))
-        top.add_widget(AnimImg("Fox", 78))
+        top = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(96), spacing=dp(14))
+        bey_i = int(p.settings.get("my_bey", 0))
+        self.bey = BeyTop(90, bey_i, pos_hint={"center_y": 0.5})
+        self.bey.bind(on_touch_down=self._switch_bey)
+        top.add_widget(self.bey)
         hello = BoxLayout(orientation="vertical")
-        hello.add_widget(Txt(f"Hallo {p.data['name'] or 'du'}!", fs=34, bold=True, halign="left"))
-        hello.add_widget(Txt(random.choice(TIPS), fs=16, color=T.MUTED, halign="left"))
+        hello.add_widget(Txt(f"Hallo {p.data['name'] or 'du'}! Bereit für die Arena?", fs=32, bold=True, halign="left"))
+        self.bey_lbl = Txt(f"Dein Kreisel: {MY_BEYS[bey_i % len(MY_BEYS)][0]}  (antippen zum Wechseln)  ·  "
+                           + random.choice(TIPS), fs=15, color=T.MUTED, halign="left")
+        hello.add_widget(self.bey_lbl)
         top.add_widget(hello)
         for icon, text, cb, w in [("🔥", str(p.streak_days()), None, 90), ("⭐", f"{p.data['stars']} XP",
                                   lambda: app.open("collection"), 150), ("🏅", "Sammlung", lambda: app.open("collection"), 170),
@@ -105,8 +111,8 @@ class HomeScreen(BaseScreen):
         gc.add_widget(gv)
         stats.add_widget(gc)
         self.col.add_widget(stats)
-        self.col.add_widget(RButton("Tagesmix  ·  alle Fächer, mit Boss-Aufgabe", on_press=lambda: app.start_session("mix"),
-                                    bg=T.SUBJECTS["mix"][0], icon="🎲", icon_size=48, fs=26, radius=26,
+        self.col.add_widget(RButton("Arena-Kampf  ·  alle Fächer, mit Boss-Finale", on_press=lambda: app.start_session("mix"),
+                                    bg=T.SUBJECTS["mix"][0], icon="🌀", icon_size=48, fs=26, radius=26,
                                     size_hint_y=None, height=dp(86)))
         grid = GridLayout(cols=2, spacing=dp(14))
         for subj in ("deutsch", "mathe", "sach", "konz"):
@@ -132,6 +138,26 @@ class HomeScreen(BaseScreen):
             self.col.add_widget(RButton(f"Fehler-Training: {len(due)} Aufgabe{'n' if len(due) != 1 else ''} zum Wiederholen",
                                         on_press=lambda: app.start_session("mix", review_only=True), bg=T.GOLD,
                                         fg="#1D2438", icon="🔁", fs=20, size_hint_y=None, height=dp(58)))
+
+
+    def _switch_bey(self, widget, touch):
+        if not widget.collide_point(*touch.pos):
+            return False
+        p = self.app.profile
+        i = (int(p.settings.get("my_bey", 0)) + 1) % len(MY_BEYS)
+        p.settings["my_bey"] = i
+        p.save()
+        parent = widget.parent
+        idx = parent.children.index(widget)
+        parent.remove_widget(widget)
+        self.bey = BeyTop(90, i, pos_hint={"center_y": 0.5})
+        self.bey.bind(on_touch_down=self._switch_bey)
+        parent.add_widget(self.bey, index=idx)
+        self.bey.boost()
+        self.bey_lbl.text = f"Dein Kreisel: {MY_BEYS[i][0]}  (antippen zum Wechseln)"
+        self.app.sounds.play("klick")
+        self.app.speaker.say(f"{MY_BEYS[i][0]} ist bereit!", force=True)
+        return True
 
 
 class SubjectScreen(BaseScreen):
@@ -172,13 +198,19 @@ class ResultScreen(BaseScreen):
                  combo=0, blitz=0, rank_before="", review_only=False, detail=None, game=None, **kw):
         super().__init__(app, **kw)
         pct = correct / total if total else 0
-        anim, title = ("Trophy", "Überragend!") if pct >= 0.9 else ("Rocket", "Starke Runde!") if pct >= 0.7 else \
-            ("Flexed Biceps Light Skin Tone", "Gut trainiert!") if pct >= 0.4 else ("Brain", "Harte Runde – dranbleiben!")
+        anim, title = ("Trophy", "BURST-SIEG!") if pct >= 0.9 else ("Rocket", "Sieg in der Arena!") if pct >= 0.6 else \
+            ("Flexed Biceps Light Skin Tone", "Knapp – Revanche!") if pct >= 0.4 else ("Brain", "Ausgedreht – weiter trainieren!")
         card = Box(bg=T.CARD, border=T.CARD_BORDER, radius=26, orientation="vertical", padding=dp(24), spacing=dp(10))
-        a = AnchorLayout(size_hint_y=None, height=dp(140))
+        a = BoxLayout(orientation="horizontal", size_hint=(None, None), height=dp(140), spacing=dp(30),
+                      pos_hint={"center_x": 0.5}, width=dp(300))
+        top_bey = BeyTop(130, int(app.profile.settings.get("my_bey", 0)))
+        a.add_widget(top_bey)
         a.add_widget(AnimImg(anim, 130))
         card.add_widget(a)
-        card.add_widget(Txt(title, fs=38, bold=True, size_hint_y=None, height=dp(52)))
+        if pct >= 0.6:
+            top_bey.boost(to=2200, back=900, hold=1.5)
+        card.add_widget(Txt(title, fs=40, color=T.GOLD if pct >= 0.6 else T.TEXT, bold=True, size_hint_y=None,
+                            height=dp(56)))
         card.add_widget(Txt(detail or f"{correct} von {total} richtig", fs=26, color=T.MUTED, size_hint_y=None,
                             height=dp(40)))
         self.xp_lbl = Txt("+0 XP", fs=32, bold=True, size_hint_y=None, height=dp(46))
@@ -430,6 +462,8 @@ class ParentScreen(BaseScreen):
         line("Sonder- & Boss-Aufgaben", seg("specials", [True, False], bool(st.get("specials", True)),
                                             labels=["An", "Aus"]))
         line("Aufgaben vorlesen", seg("tts", [True, False], bool(st.get("tts", True)), labels=["An", "Aus"]))
+        line("Design", seg("theme", ["bey", "modern"], st.get("tablet_theme", "bey"), labels=["Kreisel-Arena", "Modern"],
+                           width=160), "Wird beim nächsten Bildschirm übernommen.")
         self.rate = Slider(min=0.6, max=1.3, value=float(st.get("tablet_rate", 0.95)), size_hint=(None, None),
                            size=(dp(300), dp(40)))
         line("Sprechtempo", self.rate)
@@ -468,7 +502,9 @@ class ParentScreen(BaseScreen):
         st["specials"] = w["specials"]
         st["tts"] = w["tts"]
         st["tablet_rate"] = round(self.rate.value, 2)
+        st["tablet_theme"] = w["theme"]
+        T.apply(w["theme"])
         self.p.save()
         self.app.apply_settings()
-        toast(self.root, "Gespeichert!", "Gem Stone", color=T.GOOD_LIGHT)
+        toast(self.root, "Gespeichert!", "Gem Stone", color=T.GOOD)
         self.app.speaker.say("Einstellungen gespeichert.", force=True)

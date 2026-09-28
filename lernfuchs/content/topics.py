@@ -4,7 +4,7 @@ import random
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from . import deutsch, fokus, knobeln, konz, mathe, sachkunde
+from . import bey, deutsch, fokus, knobeln, konz, mathe, sachkunde
 from ..tasks import Task
 
 
@@ -43,6 +43,7 @@ TOPICS = [
     Topic("verben", "deutsch", "Verben & Zeitformen", "⏪", gen=deutsch.gen_verben, desc="ich laufe, er lief"),
     Topic("fokus", "deutsch", "Wort-Blitz & Fokus", "🎯", gen=fokus.gen_fokus_deutsch,
           desc="Kurz sehen, merken, genau lesen", fokus=True),
+    Topic("beylesen", "deutsch", "Arena-Geschichten", "🌀", gen=bey.gen_bey_lesen, desc="Lesen: Kreisel-Turniere"),
     Topic("raetsel", "deutsch", "Rätsel & Geheimschrift", "🕵️", gen=knobeln.gen_raetsel,
           desc="Codes knacken, Denk-Paare, Wortketten", special=True),
     # Mathe
@@ -60,6 +61,7 @@ TOPICS = [
     Topic("schriftlich", "mathe", "Schriftlich rechnen", "📝", 3, gen=mathe.gen_schriftlich),
     Topic("blitz", "mathe", "Blitzrechnen & Fokus", "⚡", gen=fokus.gen_fokus_mathe,
           desc="Aufgaben blitzen nur kurz auf", fokus=True),
+    Topic("bey", "mathe", "Kreisel-Arena", "🌀", gen=bey.gen_bey_mathe, desc="Rechnen rund um Battle-Kreisel"),
     Topic("knobeln", "mathe", "Knobeln & Logik", "🧩", gen=knobeln.gen_knobeln,
           desc="Symbol-Rätsel, Sudoku, magische Quadrate", special=True),
     # Heimat & Sachkunde
@@ -75,6 +77,7 @@ TOPICS = [
     Topic("berufe", "sach", "Berufe & Miteinander", "🧑‍🚒", gen=sachkunde.make_gen("berufe")),
     Topic("genau", "sach", "Genau hinsehen", "🔍", gen=fokus.gen_fokus_sach,
           desc="Fotos und Fakten merken", fokus=True),
+    Topic("bey", "sach", "Kreisel-Wissen", "🌀", gen=bey.gen_bey_wissen, desc="Warum Kreisel nicht umfallen"),
     Topic("forscher", "sach", "Forscherfragen", "🔭", gen=sachkunde.make_gen("forscher"),
           desc="Weltall, Dinos, Naturwissenschaft", special=True),
     Topic("entdecken", "sach", "Entdecken (Internet)", "📡", kind="online", desc="Kinderlexikon: Neues entdecken"),

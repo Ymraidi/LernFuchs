@@ -308,7 +308,7 @@ def _rect(v):
 def _column(v):
     lines = v["lines"]
     width = max(len(x) for x in lines)
-    text = "\n".join(lines) + "\n" + "─" * width
+    text = "\n".join(lines) + "\n" + "-" * width
     lab = Label(text=text, font_name="RobotoMono-Regular", font_size=sp(38), color=C(T.TEXT), halign="right",
                 size_hint=(None, None))
     lab.texture_update()

@@ -339,10 +339,10 @@ class FarbenGame(GameScreen):
         if col == self.ink:
             self.hits += 1
             self.app.sounds.play("klick")
-            self.word.text, self.word.color = "✔", C(T.GOOD)
+            self.word.text, self.word.color = "Richtig!", C(T.GOOD)
         else:
             self.app.sounds.play("falsch")
-            self.word.text, self.word.color = "✘", C(T.BAD)
+            self.word.text, self.word.color = "Falsch", C(T.BAD)
         self.later(0.45, self._next)
 
     def _done(self):
@@ -456,7 +456,7 @@ class ZahlenMerkenGame(GameScreen):
         if given == right:
             self.app.sounds.play("richtig")
             self.best, self.stars = max(self.best, self.length), self.stars + 1
-            self.big.text, self.big.color = "✔", C(T.GOOD)
+            self.big.text, self.big.color = "Richtig!", C(T.GOOD)
             self.length += 1
         else:
             self.app.sounds.play("falsch")

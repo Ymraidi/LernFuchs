@@ -45,6 +45,24 @@ PALETTES = {
     },
 }
 
+# Arena-Design (Battle-Kreisel): tiefes Nachtblau, Signalrot, Elektroblau, Gold
+PALETTES["bey"] = dict(PALETTES["modern"])
+PALETTES["bey"].update({
+    "BG": "#060A18", "CARD": "#0E1630", "CARD_BORDER": "#1E3A7A", "SURFACE": "#15234A",
+    "PRIMARY": "#FF3B3B", "PRIMARY_HOVER": "#E02626", "GOLD": "#FFD23F", "GOLD_LIGHT": "#3A3010",
+    "NEUTRAL_BTN": "#1A2A55", "NEUTRAL_HOVER": "#223670", "TRACK": "#1A2750", "GLASS": "#14264F",
+    "ELECTRIC": "#1EA7FF",
+    "SUBJECTS": {
+        "deutsch": ("#FF4D6D", "#3A1426", "#E83A5A"),
+        "mathe": ("#1EA7FF", "#0E2C55", "#0B8FE0"),
+        "sach": ("#23E5A0", "#0D3A33", "#18C98A"),
+        "konz": ("#B05CFF", "#2B1656", "#9A45F0"),
+        "mix": ("#FF3B3B", "#3D1418", "#E02626"),
+    },
+})
+PALETTES["modern"]["ELECTRIC"] = "#4C9BFF"
+PALETTES["hell"]["ELECTRIC"] = "#4D96FF"
+
 CURRENT = "modern"
 
 

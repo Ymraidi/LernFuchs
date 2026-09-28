@@ -17,7 +17,7 @@ from lernfuchs import theme as T
 from lernfuchs.content import topics as TP
 from lernfuchs.storage import today
 from .taskview import TaskView
-from .ui import AnimImg, Box, C, EmojiImg, Hourglass, Progress, RButton, Txt, fly_up, toast
+from .ui import MY_BEYS, AnimImg, BeyTop, Box, C, EmojiImg, Hourglass, Progress, RButton, Txt, fly_up, toast
 
 PRAISE = ["Richtig!", "Stark gelöst!", "Präzise!", "Sauber!", "Genau so!", "Treffer!", "Top!", "Klar erkannt!",
           "Souverän!"]
@@ -54,7 +54,28 @@ class SessionScreen(Screen):
         self._auto = None
         self._build_reviews()
         self._build_ui()
-        Clock.schedule_once(lambda *_: self._next(), 0.1)
+        Clock.schedule_once(lambda *_: self._countdown(), 0.3)
+
+    def _countdown(self):
+        """„3 – 2 – 1 – Let it rip!“ vor dem Start."""
+        lbl = Txt("3", fs=110, color=T.GOLD, bold=True, wrap=False)
+        self.body.add_widget(lbl)
+        self.app.speaker.say("Drei, zwei, eins – Let it rip!", force=True)
+        seq = ["3", "2", "1", "LET IT RIP!"]
+
+        def show(i):
+            if i >= len(seq):
+                self.body.remove_widget(lbl)
+                self.my_bey.boost(to=1400, back=540)
+                self.rival_bey.boost(to=1400, back=540)
+                return self._next()
+            lbl.text = seq[i]
+            lbl.font_size = dp(110 if i < 3 else 80)
+            lbl.opacity = 0
+            Animation(opacity=1, d=0.15).start(lbl)
+            self.app.sounds.play("klick" if i < 3 else "stufe")
+            Clock.schedule_once(lambda *_: show(i + 1), 0.6 if i < 3 else 0.8)
+        show(0)
 
     # --- Aufbau ---------------------------------------------------------------------------
     def _build_reviews(self):
@@ -107,6 +128,31 @@ class SessionScreen(Screen):
         self.count_lbl = Txt("", fs=15, color=T.MUTED, wrap=False, size_hint=(None, 1), width=dp(70))
         prow.add_widget(self.count_lbl)
         col.add_widget(prow)
+        # Arena: dein Kreisel gegen den Rivalen – Ausdauerbalken
+        my = int(self.profile.settings.get("my_bey", 0))
+        rival = random.choice([i for i in range(len(MY_BEYS)) if i != my])
+        self.rival_name = MY_BEYS[rival][0]
+        arena = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(58), spacing=dp(10))
+        self.my_bey = BeyTop(54, my, glow=True, pos_hint={"center_y": 0.5})
+        arena.add_widget(self.my_bey)
+        mcol = BoxLayout(orientation="vertical", spacing=dp(2))
+        mcol.add_widget(Txt(f"{MY_BEYS[my][0]} ({self.profile.data.get('name') or 'Du'})", fs=13, color=T.ELECTRIC,
+                            bold=True, halign="left"))
+        self.my_bar = Progress(color=T.ELECTRIC, size_hint_y=None, height=dp(12))
+        self.my_bar.value = 1
+        mcol.add_widget(self.my_bar)
+        arena.add_widget(mcol)
+        arena.add_widget(Txt("VS", fs=22, color=T.GOLD, bold=True, wrap=False, size_hint=(None, 1), width=dp(50)))
+        rcol = BoxLayout(orientation="vertical", spacing=dp(2))
+        rcol.add_widget(Txt(f"Rivale: {self.rival_name}", fs=13, color=T.PRIMARY, bold=True, halign="right"))
+        self.rival_bar = Progress(color=T.PRIMARY, size_hint_y=None, height=dp(12))
+        self.rival_bar.value = 1
+        rcol.add_widget(self.rival_bar)
+        arena.add_widget(rcol)
+        self.rival_bey = BeyTop(54, rival, glow=True, pos_hint={"center_y": 0.5})
+        arena.add_widget(self.rival_bey)
+        col.add_widget(arena)
+        self.my_hp, self.rival_hp = 1.0, 1.0
         self.card = Box(bg=T.CARD, border=T.CARD_BORDER, radius=24, orientation="vertical", padding=dp(14))
         tools = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(50), spacing=dp(8))
         tools.add_widget(Widget())
@@ -297,6 +343,14 @@ class SessionScreen(Screen):
             self.combo_lbl.text = f"{self.combo}x" if self.combo >= 2 else ""
             if gained:
                 fly_up(self.root, f"+{gained} XP", self.card.center)
+            hit = (1.0 / max(1, self.n_target)) * (1.0 if not second else 0.5) * (1.6 if bonus == 2 else 1.1)
+            self.rival_hp = max(0.0, self.rival_hp - hit)
+            Animation(value=self.rival_hp, d=0.5, t="out_quad").start(self.rival_bar)
+            self.my_bey.boost()
+            self.rival_bey.wobble()
+            if self.rival_hp <= 0.001 and not getattr(self, "_burst", False):
+                self._burst = True
+                toast(self.root, "BURST FINISH!", "Collision", seconds=2.5)
             self.app.sounds.play("richtig")
             text = "Im zweiten Versuch geschafft." if second else \
                 (f"+{gained} XP" + (f"  ·  {', '.join(extras)}" if extras else ""))
@@ -310,6 +364,10 @@ class SessionScreen(Screen):
             self.combo = 0
             self.combo_lbl.text = ""
             self.mistakes.append(task)
+            self.my_hp = max(0.15, self.my_hp - 0.08)
+            Animation(value=self.my_hp, d=0.5, t="out_quad").start(self.my_bar)
+            self.my_bey.wobble()
+            self.rival_bey.boost(to=1100)
             if not timeout:
                 self.app.sounds.play("falsch")
             sol = self._solution(task)

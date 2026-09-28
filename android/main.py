@@ -83,6 +83,8 @@ class LernFuchsApp(App):
         Window.softinput_mode = "below_target"
         Window.bind(on_keyboard=self._on_key)
         self.profile = Profile()
+        T.apply(self.profile.settings.get("tablet_theme", "bey"))
+        Window.clearcolor = C(T.BG)
         self.speaker = Speaker()
         self.sounds = Sounds()
         install_photos()
