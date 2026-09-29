@@ -38,7 +38,28 @@ jobs:
 
       - name: APK bauen
         working-directory: android
-        run: yes | buildozer -v android debug
+        run: |
+          yes | buildozer -v android debug > build.log 2>&1
+          status=$?
+          tail -n 60 build.log
+          exit $status
+
+      - name: Fehler zusammenfassen (nur wenn der Bau scheitert)
+        if: failure()
+        working-directory: android
+        run: |
+          python3 - <<'PY'
+          import re
+          try:
+              log = open("build.log", encoding="utf-8", errors="replace").read().splitlines()
+          except OSError:
+              log = ["(kein build.log)"]
+          def esc(t):
+              return t.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+          hits = [l for l in log if re.search(r"error|failed|exception|traceback|not found|no such", l, re.I)]
+          print("::error title=Fehlerzeilen::" + esc("\n".join(hits[-60:])[-30000:]))
+          print("::error title=Ende des Protokolls::" + esc("\n".join(log[-80:])[-30000:]))
+          PY
 
       - name: APK bereitstellen
         uses: actions/upload-artifact@v4
