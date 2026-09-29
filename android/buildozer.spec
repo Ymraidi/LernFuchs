@@ -6,7 +6,8 @@ source.dir = .
 source.include_exts = py,png,jpg,json,zip,wav,ttf
 source.exclude_dirs = tools,bin,.buildozer
 version = 3.0.0
-requirements = python3,kivy==2.3.1,pillow,emoji,pyjnius,android
+# Das reine Python-Paket „emoji“ liegt direkt im Ordner emoji/ (spart den pip-Schritt beim Bauen)
+requirements = python3,kivy==2.3.1,pillow,pyjnius,android
 orientation = landscape
 fullscreen = 1
 icon.filename = %(source.dir)s/assets/icon.png
