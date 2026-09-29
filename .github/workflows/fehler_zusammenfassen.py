@@ -19,6 +19,8 @@ for i, line in enumerate(clean):
         cut = i
         break
 before = clean[max(0, cut - 90):cut + 3]
+recipes = [line for line in clean if re.search(r"don't have recipes|python_modules|Installing .* with pip", line)]
+print("::warning title=Module ohne Rezept::" + "%0A".join(recipes[-10:]).replace("%", "%25")[-5000:])
 hits = [line for line in clean
         if re.search(r"\berror\b|Error:|ERROR|failed|Traceback|ModuleNotFound|No such file|not found", line)]
 

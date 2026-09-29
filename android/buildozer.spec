@@ -20,6 +20,9 @@ android.minapi = 24
 android.archs = arm64-v8a, armeabi-v7a
 android.accept_sdk_license = True
 android.allow_backup = True
+
+# Stabile Version des Bauwerkzeugs (die Entwicklerversion nutzt Python 3.14, dort ist pip derzeit defekt)
+p4a.branch = v2024.01.21
 # Keine Berechtigungen nötig: alles läuft offline, Sprache über die Android-Sprachausgabe.
 
 [buildozer]
