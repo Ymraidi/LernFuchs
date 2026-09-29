@@ -17,6 +17,12 @@ jobs:
         with:
           python-version: "3.11"
 
+      # Das Android-Gradle-Plugin braucht Java 17 (Standard auf dem Server wäre Java 11)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Gemeinsamen Kern in die Android-App kopieren
         run: python android/tools/sync_core.py
 
