@@ -9,25 +9,23 @@ except OSError:
     log = ["(kein build.log)"]
 
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
-NOISE = re.compile(r"performance hint|Declare '|Use an 'int' return|^\s*#\s|Exception check on")
+NOISE = re.compile(r"performance hint|Declare '|Use an 'int' return|Exception check on|^\s*#\s|^export |\.pyc\b")
 log = [ANSI.sub("", line) for line in log]
 clean = [line for line in log if not NOISE.search(line)]
 
-cut = len(clean)
-for i, line in enumerate(clean):
-    if "Command failed" in line or "Buildozer failed" in line:
-        cut = i
-        break
-before = clean[max(0, cut - 90):cut + 3]
-recipes = [line for line in clean if re.search(r"don't have recipes|python_modules|Installing .* with pip", line)]
-print("::warning title=Module ohne Rezept::" + "%0A".join(recipes[-10:]).replace("%", "%25")[-5000:])
-hits = [line for line in clean
-        if re.search(r"\berror\b|Error:|ERROR|failed|Traceback|ModuleNotFound|No such file|not found", line)]
+MARK = re.compile(r"BUILD FAILED|FAILURE:|What went wrong|Command failed|Error:|error:|Exception|STDERR:|"
+                  r"ErrorReturnCode|No such file|not found|Traceback", re.I)
+marks = [i for i, line in enumerate(clean) if MARK.search(line)]
 
 
 def esc(text):
     return text.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
 
 
-print("::error title=Vor dem Abbruch::" + esc("\n".join(before)[-40000:]))
-print("::error title=Fehlerzeilen::" + esc("\n".join(hits[-40:])[-20000:]))
+# Die ersten echten Fehlerstellen sind meist die Ursache – beide Enden zeigen
+blocks = []
+for i in (marks[:3] + marks[-4:]):
+    blocks.append(f"--- Zeile {i} ---")
+    blocks.extend(clean[max(0, i - 12):i + 8])
+print("::error title=Fehlerstellen::" + esc("\n".join(blocks)[-45000:]))
+print("::error title=Letzte Zeilen::" + esc("\n".join(clean[-70:])[-20000:]))
