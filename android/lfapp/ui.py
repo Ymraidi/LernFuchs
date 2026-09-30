@@ -128,7 +128,8 @@ def pil_texture(im):
     im = im.convert("RGBA")
     tex = Texture.create(size=im.size, colorfmt="rgba")
     from PIL import Image as _PIL
-    tex.blit_buffer(im.transpose(_PIL.Transpose.FLIP_TOP_BOTTOM).tobytes(), colorfmt="rgba", bufferfmt="ubyte")
+    flip = getattr(getattr(_PIL, "Transpose", _PIL), "FLIP_TOP_BOTTOM")  # Pillow 8 (Tablet) und neuer
+    tex.blit_buffer(im.transpose(flip).tobytes(), colorfmt="rgba", bufferfmt="ubyte")
     return tex
 
 
